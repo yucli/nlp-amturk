@@ -2,5 +2,5 @@
   color: #fff;
   height: 100%;
   background: url("poster_1.jpg") center no-repeat;
-  background-size: 95% 95%;
+  background-size: cover;
 }
