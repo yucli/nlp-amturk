@@ -6,7 +6,8 @@ var scores = [];
 var noScore = -10;
 var submmitedWorkers = [];
 var startTime, endTime;
-var timeLimit = 20;
+var timeLimit = 15;
+var timeToHide = 5000;
 
 
 var movieContent = {
@@ -37,6 +38,15 @@ var movieContent = {
 
 $(document).ready(function() {
 	$('[data-toggle="popover"]').popover();
+	/*
+	$('#btn-submit').on('show.bs.popover', function() {
+		setTimeout(
+			function() {
+				$('#btn-submit').popover('hide'); 
+			}, timeToHide
+		);
+	});
+	*/
 	
     if (gup('assignmentId') === 'ASSIGNMENT_ID_NOT_AVAILABLE') {
         $('body').empty();
@@ -166,6 +176,12 @@ $(document).ready(function() {
 			popContent = popContent.concat('還剩下 ', timeLimit - seconds, '秒<br>');
 			$(btn_submit).attr('data-content', popContent);
 			$(btn_submit).popover('show');
+			
+			setTimeout(
+				function() {
+					$('#btn-submit').popover('hide'); 
+				}, timeToHide
+			);
 		}
 		else {
 			$(btn_submit).popover('hide');
@@ -182,6 +198,12 @@ $(document).ready(function() {
 			$(btn_submit).attr('data-content', popContent);
 			$(btn_submit).popover('show');
 			notSubmitted = false
+			
+			setTimeout(
+				function() {
+					$('#btn-submit').popover('hide'); 
+				}, timeToHide
+			);
 		}
 		
 		return notSubmitted;
