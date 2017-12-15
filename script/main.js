@@ -4,6 +4,10 @@ var taskId = 1;
 var numMovie = 3;
 var scores = [];
 var noScore = -10;
+var submmitedWorkers = [];
+var startTime, endTime;
+var timeLimit = 20;
+
 
 var movieContent = {
     'movie': [
@@ -32,6 +36,8 @@ var movieContent = {
 };
 
 $(document).ready(function() {
+	$('[data-toggle="popover"]').popover();
+	
     if (gup('assignmentId') === 'ASSIGNMENT_ID_NOT_AVAILABLE') {
         $('body').empty();
         $('body').css('background', 'white');
@@ -63,6 +69,7 @@ $(document).ready(function() {
         $('#div-task').show();
         showTask(taskId);
         setButtonStatus(taskId);
+		startTimer();
     });
 
     $('#btn-previous').click(function() {
@@ -78,7 +85,10 @@ $(document).ready(function() {
     });
 
     $('#btn-submit').click(function() {
-        submitToTurk();
+		if(timeLimitExceeded(this) && checkNotSubmitted(this) && checkScores(this)) {
+			submitToTurk();
+			submmitedWorkers.push(gup('workerId'));
+		}
     });
 
     $('.btn-secondary').click(function() {
@@ -134,6 +144,89 @@ $(document).ready(function() {
 
     function setScore(taskId, value) {
         scores[taskId - 1] = value;
+    }
+	
+	function startTimer() {
+		startTime = new Date();
+	};
+	
+	function timeLimitExceeded(btn_submit) {
+		var excess = true;
+		
+		endTime = new Date();
+		var timeDiff = endTime - startTime; //in ms
+		timeDiff /= 1000;
+		var seconds = Math.round(timeDiff);
+		
+		if(seconds <= timeLimit) {
+			excess = false;
+			var popContent = '';
+			var popContent = popContent.concat('可提交的時間限制 ', timeLimit,'秒<br>');
+			popContent = popContent.concat('已過 ', seconds,'秒<br>');
+			popContent = popContent.concat('還剩下 ', timeLimit - seconds, '秒<br>');
+			$(btn_submit).attr('data-content', popContent);
+			$(btn_submit).popover('show');
+		}
+		else {
+			$(btn_submit).popover('hide');
+		}
+		
+		return excess;
+	}
+	
+	function checkNotSubmitted(btn_submit) {
+		var notSubmitted = true;
+		
+		if (gup('workerId') != '' && submmitedWorkers.indexOf(gup('workerId')) != -1) {
+			var popContent = '你'.concat('(', gup('workerId'), ')', ' 已經提交');
+			$(btn_submit).attr('data-content', popContent);
+			$(btn_submit).popover('show');
+			notSubmitted = false
+		}
+		
+		return notSubmitted;
+	}
+	
+	function checkScores(btn_submit) {
+		var allChosen = true;
+		var notChosenNum = 0;
+		var lastNotChosen = -1;
+		
+		for (i = 0; i < numMovie; ++i) {
+			if(scores[i] == noScore) {
+				allChosen = false;
+				notChosenNum++;
+				lastNotChosen = i;
+			}
+		}
+		
+		if(allChosen) {
+			$(btn_submit).popover('hide');
+		}
+		else {
+			var popContent = ''
+			if(notChosenNum == 1) {
+				popContent = popContent.concat("Task" + (lastNotChosen + 1) + " ");
+				popContent = popContent.concat("的分數還未被評分")
+			}
+			else {
+				for (i = 0; i < numMovie; ++i) {
+					if(scores[i] == noScore) {
+						if(i == lastNotChosen) {
+							popContent = popContent.concat("和 Task" + (i+1) + " ");
+						}
+						else {
+							popContent = popContent.concat("Task" + (i+1) + ", ");
+						}
+					}
+				}
+				popContent = popContent.concat("的分數還未被評分")
+			}
+			$(btn_submit).attr('data-content', popContent);
+			$(btn_submit).popover('show'); 
+		}
+		
+        return allChosen;
     }
 
     function submitToTurk() {
