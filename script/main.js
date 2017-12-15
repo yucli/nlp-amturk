@@ -121,11 +121,14 @@ $(document).ready(function() {
     function showTask(taskId) {
         var imgUrl = 'image/poster_' + taskId + '.jpg';
         $('.card-header').text('Task ' + taskId + ' of ' + numMovie);
-
+		
+		$('#poster').attr('src', imgUrl);
+		
+		/*
         $('.card-img-bottom')
             .css('background', 'url(' + imgUrl + ') center no-repeat');
-
-        $('#p-task-id').text('Task ' + taskId);
+		*/
+        //$('#p-task-id').text('Task ' + taskId);
         $('#h4-title-chinese')
             .text(movieContent['movie'][taskId - 1]['title-ch']);
         $('#h6-title-eng').text(movieContent['movie'][taskId - 1]['title-eng']);
