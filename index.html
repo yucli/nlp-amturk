@@ -1,25 +1,84 @@
 <!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>nlp hands-on 3</title>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-		<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
-		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-		
-		<script>
-		$( function() {
-			$( "button, input, a" ).click( function( event ) {
-			  event.preventDefault();
-			} );
-		} );
-	  </script>
-	</head>
 
-	<body>
-		<h1>說明</h1>
-		<p>以下省略</p>
-		<input class="ui-button ui-widget ui-corner-all" type="submit" value="A submit button">
-	</body>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
+        crossorigin="anonymous">
+    <script src="script/main.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/card.css">
+</head>
+
+<body>
+    <!-- Description Page -->
+    <div class="container mt-5" id="div-description">
+        <h2 id="h2-description">任務說明</h2>
+        <p id="p-description-1">請依照您對接下來出現電影的熟悉程度，判斷自動生成的電影標題與電影本身契合程度。</p>
+        <p id="p-description-2">分數越高表示此電影標題越能代表電影。</p>
+        <button class="btn btn-outline-primary" id="btn-accept" type="button">Accept</button>
+    </div>
+
+    <!-- Task Page -->
+    <div id="div-task" style="display:none">
+         <div class="card mx-auto mt-5 mb-5" style="width: 60%">
+            <div class="card-header">
+                Task x of y
+            </div>
+            <div class="row">
+                <!-- Movie content -->
+                <div class="col-md-6">
+                    <div class="card-body">
+
+                        <!-- Title section -->
+                        <h4 class="card-title" id="h4-title-chinese"></h4>
+                        <h6 class="card-subtitle mb-4 text-muted" id="h6-title-eng"></h6>
+                        <p id="p-movie-description"></p>
+                        <hr />
+                        
+                        <h4>生成的電影標題</h4>
+                        <p id="h5-title-generated"></p>
+                        <hr />
+
+                        <!-- Score Section -->
+                        <h4 id="h4-score-title">分數 </h4>
+                        <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                            <div class="btn-group" role="group" aria-label="First group">
+                                <button type="button" class="btn btn-secondary" name="0">0</button>
+                                <button type="button" class="btn btn-secondary" name="1">1</button>
+                                <button type="button" class="btn btn-secondary" name="2">2</button>
+                                <button type="button" class="btn btn-secondary" name="3">3</button>
+                                <button type="button" class="btn btn-secondary" name="4">4</button>
+                                <button type="button" class="btn btn-secondary" name="5">5</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Button Section -->
+                        <button class="btn btn-link mt-5 mr-3 pl-0 pr-0" id="btn-previous" type="button">previous</button>
+                        <button class="btn btn-link mt-5 pl-0 pr-0" id="btn-next" type="button">next</button>
+                        <button class="btn btn-link mt-5 float-right pl-0 pr-0" id="btn-submit" type="button">submit</button>
+
+                    </div>
+                </div>
+                <!-- Poster -->
+                <div class="col-md-6">
+                    <div class="card-img-bottom"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!--  Mturk form -->
+    <form id="mturk_form" name="mturk_form">
+        <input id="mturk‐assignmentId" name="assignmentId" type="hidden">
+        <div id="div-mturk-score">
+            <input id="mturk-score-q1" name="q1" type="hidden">
+            <input id="mturk-score-q2" name="q2" type="hidden">
+            <input id="mturk-score-q3" name="q3" type="hidden">
+        </div>
+    </form>
+
+</body>
+
 </html>
