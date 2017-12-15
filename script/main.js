@@ -111,7 +111,7 @@ $(document).ready(function() {
         $('#h6-title-eng').text(movieContent['movie'][taskId - 1]['title-eng']);
         $('#p-movie-description')
             .text(movieContent['movie'][taskId - 1]['description']);
-        $('#h5-title-generated')
+        $('#p-title-generated')
             .text(movieContent['movie'][taskId - 1]['title-generated']);
     }
 
