@@ -248,7 +248,13 @@ $(document).ready(function() {
 				popContent = popContent.concat("的分數還未被評分")
 			}
 			$(btn_submit).attr('data-content', popContent);
-			$(btn_submit).popover('show'); 
+			$(btn_submit).popover('show');
+			
+			setTimeout(
+				function() {
+					$('#btn-submit').popover('hide'); 
+				}, timeToHide
+			);
 		}
 		
         return allChosen;
