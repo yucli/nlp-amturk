@@ -4,11 +4,13 @@ var taskId = 1;
 var numMovie = 3;
 var scores = [];
 var noScore = -10;
-var submmitedWorkers = [];
-var startTime, endTime;
-var timeLimit = 15;
-var timeToHide = 5000;
+var submmitedWorkerId = [];
 
+var timeLimit = 5;
+var timeUnit = 1000;
+var timer;
+var timeRecord = 0;
+var timeToHide = 3000;
 
 var movieContent = {
     'movie': [
@@ -37,17 +39,8 @@ var movieContent = {
 };
 
 $(document).ready(function() {
-	$('[data-toggle="popover"]').popover();
-	/*
-	$('#btn-submit').on('show.bs.popover', function() {
-		setTimeout(
-			function() {
-				$('#btn-submit').popover('hide'); 
-			}, timeToHide
-		);
-	});
-	*/
-	
+    $('[data-toggle="popover"]').popover();
+
     if (gup('assignmentId') === 'ASSIGNMENT_ID_NOT_AVAILABLE') {
         $('body').empty();
         $('body').css('background', 'white');
@@ -77,28 +70,42 @@ $(document).ready(function() {
     $('#btn-accept').click(function() {
         $('#div-description').hide();
         $('#div-task').show();
+        startTimer();
+        setNextButton();
         showTask(taskId);
         setButtonStatus(taskId);
-		startTimer();
     });
 
     $('#btn-previous').click(function() {
         showTask(--taskId);
         setScoreButton(taskId, taskId + 1);
+        // Ensure that the worker spend more time than the limit on each task.
+        if (timeRecord < timeLimit) {
+            clearScore(taskId + 1);
+        }
+        stopTimer();
+        if (getScore(taskId) == noScore) {
+            startTimer();
+        }
+        setNextButton();
         setButtonStatus(taskId);
     });
 
     $('#btn-next').click(function() {
         showTask(++taskId);
         setScoreButton(taskId, taskId - 1);
+        if (getScore(taskId) == noScore) {
+            startTimer();
+        }
+        setNextButton();
         setButtonStatus(taskId);
     });
 
     $('#btn-submit').click(function() {
-		if(timeLimitExceeded(this) && checkNotSubmitted(this) && checkScores(this)) {
-			submitToTurk();
-			submmitedWorkers.push(gup('workerId'));
-		}
+        if (checkNotSubmitted(this) && checkScores(this)) {
+            submitToTurk();
+            submmitedWorkerId.push(gup('workerId'));
+        }
     });
 
     $('.btn-secondary').click(function() {
@@ -121,14 +128,7 @@ $(document).ready(function() {
     function showTask(taskId) {
         var imgUrl = 'image/poster_' + taskId + '.jpg';
         $('.card-header').text('Task ' + taskId + ' of ' + numMovie);
-		
-		$('#poster').attr('src', imgUrl);
-		
-		/*
-        $('.card-img-bottom')
-            .css('background', 'url(' + imgUrl + ') center no-repeat');
-		*/
-        //$('#p-task-id').text('Task ' + taskId);
+
         $('#h4-title-chinese')
             .text(movieContent['movie'][taskId - 1]['title-ch']);
         $('#h6-title-eng').text(movieContent['movie'][taskId - 1]['title-eng']);
@@ -136,6 +136,13 @@ $(document).ready(function() {
             .text(movieContent['movie'][taskId - 1]['description']);
         $('#p-title-generated')
             .text(movieContent['movie'][taskId - 1]['title-generated']);
+
+        $('#poster').attr('src', imgUrl);
+        var h = $('.card-body').css('height');
+        $('#poster').css('height', h);
+
+        $('#bg-poster')
+            .css('background', 'url(' + imgUrl + ') center no-repeat');
     }
 
     function setScoreButton(curId, preId) {
@@ -147,7 +154,8 @@ $(document).ready(function() {
 
     function setButtonStatus(taskId) {
         $('#btn-previous').prop('disabled', taskId == 1 ? true : false);
-        $('#btn-next').prop('disabled', taskId == numMovie ? true : false);
+        if (timeRecord == timeLimit)
+            $('#btn-next').prop('disabled', taskId == numMovie ? true : false);
         $('#btn-submit').prop('disabled', taskId < numMovie ? true : false);
     }
 
@@ -158,106 +166,81 @@ $(document).ready(function() {
     function setScore(taskId, value) {
         scores[taskId - 1] = value;
     }
-	
-	function startTimer() {
-		startTime = new Date();
-	};
-	
-	function timeLimitExceeded(btn_submit) {
-		var excess = true;
-		
-		endTime = new Date();
-		var timeDiff = endTime - startTime; //in ms
-		timeDiff /= 1000;
-		var seconds = Math.round(timeDiff);
-		
-		if(seconds <= timeLimit) {
-			excess = false;
-			var popContent = '';
-			var popContent = popContent.concat('可提交的時間限制 ', timeLimit,'秒<br>');
-			popContent = popContent.concat('已過 ', seconds,'秒<br>');
-			popContent = popContent.concat('還剩下 ', timeLimit - seconds, '秒<br>');
-			$(btn_submit).attr('data-content', popContent);
-			$(btn_submit).popover('show');
-			
-			setTimeout(
-				function() {
-					$('#btn-submit').popover('hide'); 
-				}, timeToHide
-			);
-		}
-		else {
-			$(btn_submit).popover('hide');
-		}
-		
-		return excess;
-	}
-	
-	function checkNotSubmitted(btn_submit) {
-		var notSubmitted = true;
-		
-		if (gup('workerId') != '' && submmitedWorkers.indexOf(gup('workerId')) != -1) {
-			var popContent = '你'.concat('(', gup('workerId'), ')', ' 已經提交');
-			$(btn_submit).attr('data-content', popContent);
-			$(btn_submit).popover('show');
-			notSubmitted = false
-			
-			setTimeout(
-				function() {
-					$('#btn-submit').popover('hide'); 
-				}, timeToHide
-			);
-		}
-		
-		return notSubmitted;
-	}
-	
-	function checkScores(btn_submit) {
-		var allChosen = true;
-		var notChosenNum = 0;
-		var lastNotChosen = -1;
-		
-		for (i = 0; i < numMovie; ++i) {
-			if(scores[i] == noScore) {
-				allChosen = false;
-				notChosenNum++;
-				lastNotChosen = i;
-			}
-		}
-		
-		if(allChosen) {
-			$(btn_submit).popover('hide');
-		}
-		else {
-			var popContent = ''
-			if(notChosenNum == 1) {
-				popContent = popContent.concat("Task" + (lastNotChosen + 1) + " ");
-				popContent = popContent.concat("的分數還未被評分")
-			}
-			else {
-				for (i = 0; i < numMovie; ++i) {
-					if(scores[i] == noScore) {
-						if(i == lastNotChosen) {
-							popContent = popContent.concat("和 Task" + (i+1) + " ");
-						}
-						else {
-							popContent = popContent.concat("Task" + (i+1) + ", ");
-						}
-					}
-				}
-				popContent = popContent.concat("的分數還未被評分")
-			}
-			$(btn_submit).attr('data-content', popContent);
-			$(btn_submit).popover('show');
-			
-			setTimeout(
-				function() {
-					$('#btn-submit').popover('hide'); 
-				}, timeToHide
-			);
-		}
-		
-        return allChosen;
+
+    function clearScore(taskId) {
+        scores[taskId - 1] = noScore;
+    }
+
+    function startTimer() {
+        timeRecord = 0;
+        timer = setInterval(setNextButton, timeUnit);
+    };
+
+    function stopTimer() {
+        timeRecord = 6;
+        clearInterval(timer);
+    }
+
+    function setNextButton() {
+        if (timeRecord < timeLimit) {
+            $('#btn-next').prop('disabled', true);
+            $('#btn-next').text('next (' + (timeLimit - timeRecord) + ')');
+            timeRecord++;
+        } else {
+            $('#btn-next').prop('disabled', false);
+            $('#btn-next').text('next');
+            stopTimer();
+        }
+    }
+
+    function checkNotSubmitted(btn_submit) {
+        var submitted =
+            (gup('workerId') != '' &&
+             submmitedWorkerId.indexOf(gup('workerId')) != -1);
+
+        if (submitted) {
+            var popContent =
+                '你'.concat('(', gup('workerId'), ')', ' 已經提交');
+            $(btn_submit).attr('data-content', popContent);
+            $(btn_submit).popover('show');
+
+            setTimeout(function() {
+                $('#btn-submit').popover('hide');
+            }, timeToHide);
+        }
+
+        return !submitted;
+    }
+
+    function checkScores(btn_submit) {
+        var taskDone = true;
+        var taskNotScored = [];
+
+        for (i = 0; i < numMovie; ++i) {
+            if (scores[i] == noScore) {
+                taskDone = false;
+                taskNotScored.push(i + 1);
+            }
+        }
+
+        if (taskDone) {
+            $(btn_submit).popover('hide');
+        } else {
+            var popContent = 'Task ' + taskNotScored[0];
+            for (i = 1; i < taskNotScored.length; ++i) {
+                popContent = popContent.concat(', ' + taskNotScored[i]);
+            }
+            popContent = popContent.concat(' 尚未被評分');
+
+            $(btn_submit).attr('data-content', popContent);
+            $(btn_submit).popover('show');
+
+            setTimeout(function() {
+                $('#btn-submit').popover('hide');
+            }, timeToHide);
+        }
+
+        return taskDone;
     }
 
     function submitToTurk() {
