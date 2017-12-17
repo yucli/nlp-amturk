@@ -4,11 +4,13 @@ var taskId = 1;
 var numMovie = 3;
 var scores = [];
 var noScore = -10;
-var submmitedWorkers = [];
-var startTime, endTime;
-var timeLimit = 15;
-var timeToHide = 5000;
+var submmitedWorkerId = [];
 
+var timeLimit = 5;
+var timeUnit = 1000;
+var timer;
+var timeRecord = 0;
+var timeToHide = 3000;
 
 var movieContent = {
     'movie': [
@@ -38,15 +40,6 @@ var movieContent = {
 
 $(document).ready(function() {
 	$('[data-toggle="popover"]').popover();
-	/*
-	$('#btn-submit').on('show.bs.popover', function() {
-		setTimeout(
-			function() {
-				$('#btn-submit').popover('hide'); 
-			}, timeToHide
-		);
-	});
-	*/
 	
     if (gup('assignmentId') === 'ASSIGNMENT_ID_NOT_AVAILABLE') {
         $('body').empty();
@@ -77,25 +70,39 @@ $(document).ready(function() {
     $('#btn-accept').click(function() {
         $('#div-description').hide();
         $('#div-task').show();
+        startTimer();
+        setNextButton();
         showTask(taskId);
         setButtonStatus(taskId);
-		startTimer();
     });
 
     $('#btn-previous').click(function() {
         showTask(--taskId);
         setScoreButton(taskId, taskId + 1);
+        // Ensure that the worker spend more time than the limit on each task.
+        if (timeRecord < timeLimit) {
+            clearScore(taskId + 1);
+        }
+        stopTimer();
+        if (getScore(taskId) == noScore) {
+            startTimer();
+        }
+        setNextButton();
         setButtonStatus(taskId);
     });
 
     $('#btn-next').click(function() {
         showTask(++taskId);
         setScoreButton(taskId, taskId - 1);
+        if (getScore(taskId) == noScore) {
+            startTimer();
+        }
+        setNextButton();
         setButtonStatus(taskId);
     });
 
     $('#btn-submit').click(function() {
-		if(timeLimitExceeded(this) && checkNotSubmitted(this) && checkScores(this)) {
+		if(checkNotSubmitted(this) && checkScores(this)) {
 			submitToTurk();
 			submmitedWorkers.push(gup('workerId'));
 		}
@@ -128,8 +135,8 @@ $(document).ready(function() {
         $('.card-img-bottom')
             .css('background', 'url(' + imgUrl + ') center no-repeat');
 		*/
-        //$('#p-task-id').text('Task ' + taskId);
-        $('#h4-title-chinese')
+
+		$('#h4-title-chinese')
             .text(movieContent['movie'][taskId - 1]['title-ch']);
         $('#h6-title-eng').text(movieContent['movie'][taskId - 1]['title-eng']);
         $('#p-movie-description')
@@ -159,39 +166,31 @@ $(document).ready(function() {
         scores[taskId - 1] = value;
     }
 	
-	function startTimer() {
-		startTime = new Date();
-	};
+	function clearScore(taskId) {
+        scores[taskId - 1] = noScore;
+    }
 	
-	function timeLimitExceeded(btn_submit) {
-		var excess = true;
-		
-		endTime = new Date();
-		var timeDiff = endTime - startTime; //in ms
-		timeDiff /= 1000;
-		var seconds = Math.round(timeDiff);
-		
-		if(seconds <= timeLimit) {
-			excess = false;
-			var popContent = '';
-			var popContent = popContent.concat('可提交的時間限制 ', timeLimit,'秒<br>');
-			popContent = popContent.concat('已過 ', seconds,'秒<br>');
-			popContent = popContent.concat('還剩下 ', timeLimit - seconds, '秒<br>');
-			$(btn_submit).attr('data-content', popContent);
-			$(btn_submit).popover('show');
-			
-			setTimeout(
-				function() {
-					$('#btn-submit').popover('hide'); 
-				}, timeToHide
-			);
-		}
-		else {
-			$(btn_submit).popover('hide');
-		}
-		
-		return excess;
+	function startTimer() {
+		timeRecord = 0;
+        timer = setInterval(setNextButton, timeUnit);
 	}
+	
+	function stopTimer() {
+        timeRecord = 6;
+        clearInterval(timer);
+    }
+	
+	function setNextButton() {
+        if (timeRecord < timeLimit) {
+            $('#btn-next').prop('disabled', true);
+            $('#btn-next').text('next (' + (timeLimit - timeRecord) + ')');
+            timeRecord++;
+        } else {
+            $('#btn-next').prop('disabled', false);
+            $('#btn-next').text('next');
+            stopTimer();
+        }
+    }
 	
 	function checkNotSubmitted(btn_submit) {
 		var notSubmitted = true;
